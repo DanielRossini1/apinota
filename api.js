@@ -21,6 +21,11 @@ app.post('/api', function(req, res){
   console.log('Enviando JSON...');
 
   request.post('https://aluno.unicesumar.edu.br/lyceump/aonline/middle_logon.asp', { form: { txtnumero_matricula: req.body.ra, txtsenha_tac: req.body.senha } }, function (error, response, body) {
+
+    if(error){
+      return error;
+    }
+
     cookie = response.headers['set-cookie'];
     
     request.cookie(cookie[0]);
