@@ -18,13 +18,11 @@ app.post('/api', function(req, res){
 
   res.setHeader('Access-Control-Allow-Origin', '*');
 
-  console.log('Enviando JSON...');
+  console.log('Preparando JSON...');
 
   request.post('https://aluno.unicesumar.edu.br/lyceump/aonline/middle_logon.asp', { form: { txtnumero_matricula: req.body.ra, txtsenha_tac: req.body.senha } }, function (error, response, body) {
 
-    if(error){
-      res.send(error);
-    }
+
 
     cookie = response.headers['set-cookie'];
     
@@ -41,6 +39,13 @@ app.post('/api', function(req, res){
     }
     
     request(options, function(error, response, body){
+      
+      if(response.caseless['dict']['content-length'] < 1000){
+        res.send('ERROR');
+        console.log('Erro ao tentar se conectar!')
+        return;
+      }
+
       $ = cheerio.load(response.body);
       $('.tr01 .font01').each(function(i, elem){
         switch(x){
@@ -119,11 +124,11 @@ app.post('/api', function(req, res){
       notas = "{ \"Notas\": [" + notas + "] } ";
       var json = JSON.parse(notas);
       res.send(json);
+      console.log("Enviado com sucesso!");
     });
     
   });
 
-  console.log('JSON Enviado!');
 });
 
 app.listen(process.env.PORT || 3000, function(){
