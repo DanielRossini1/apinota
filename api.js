@@ -4,15 +4,15 @@ const request = require("request");
 const cheerio = require('cheerio');
 var bodyParser = require('body-parser');
 
-var cookie;
-var headers;
-var options;
-var notas;
-var x = 0;
 
 app.use(bodyParser.json());
 
 app.post('/api', function(req, res){
+  var cookie;
+  var headers;
+  var options;
+  var notas;
+  var x = 0;
 
   req.body.ra = parseInt(req.body.ra);
 
