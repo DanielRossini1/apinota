@@ -14,6 +14,8 @@ app.use(bodyParser.json());
 
 app.post('/api', function(req, res){
 
+  req.body.ra = parseInt(req.body.ra);
+
   console.log(req.body);
 
   // res.setHeader('Access-Control-Allow-Origin', '*');
