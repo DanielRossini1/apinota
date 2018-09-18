@@ -23,7 +23,7 @@ app.post('/api', function(req, res){
   request.post('https://aluno.unicesumar.edu.br/lyceump/aonline/middle_logon.asp', { form: { txtnumero_matricula: req.body.ra, txtsenha_tac: req.body.senha } }, function (error, response, body) {
 
     if(error){
-      return error;
+      res.send(error);
     }
 
     cookie = response.headers['set-cookie'];
