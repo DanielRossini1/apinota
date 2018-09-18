@@ -119,6 +119,8 @@ app.post('/api', function(req, res){
   console.log('JSON Enviado!');
 });
 
-app.listen(3000);
+app.listen(process.env.PORT || 3000, function(){
+  console.log("Servidor rodando!");
+});
 
 
