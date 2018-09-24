@@ -1,6 +1,6 @@
 var express = require('express');
 var app = express();
-const request = require("request");
+const request = require("request-promise");
 const cheerio = require('cheerio');
 var bodyParser = require('body-parser');
 
@@ -8,45 +8,87 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 
 app.post('/api', function(req, res){
-  var cookie;
-  var headers;
-  var options;
-  var notas;
-  var x = 0;
 
-  req.body.ra = parseInt(req.body.ra);
+  getInfo(req.body.ra, req.body.senha)
+    .then(function (response){
+      res.send(response);
+    });
 
-  res.setHeader('Access-Control-Allow-Origin', '*');
+});
 
-  console.log('Preparando JSON...');
+app.listen(process.env.PORT || 3000, function(){
+  console.log('Servidor rodando!');
+});
 
-  request.post('https://aluno.unicesumar.edu.br/lyceump/aonline/middle_logon.asp', { form: { txtnumero_matricula: req.body.ra, txtsenha_tac: req.body.senha } }, function (error, response, body) {
+async function getInfo(ra, senha){
 
+  var cookie = await getCookie(ra, senha);
 
+  var options = await setCookie(cookie);
 
-    cookie = response.headers['set-cookie'];
-    
-    request.cookie(cookie[0]);
-    headers = {
-      'Content-Type': 'application/json',
-      'Cookie': cookie
+  var jsonNotas = await getJsonNotas(options);
+
+  return jsonNotas;
+
+}
+
+async function getCookie(ra, senha){
+
+  var options = {
+    method: 'POST',
+    uri: 'https://aluno.unicesumar.edu.br/lyceump/aonline/middle_logon.asp',
+    form: {
+      txtnumero_matricula: ra, 
+      txtsenha_tac: senha 
     }
-    
-    options = {
-      url: 'https://aluno.unicesumar.edu.br/lyceump/aonline/notas_freq.asp',
-      method: 'GET',
-      headers: headers
-    }
-    
-    request(options, function(error, response, body){
+  };
+
+  var aux;
+
+  await request(options)
+    .then(function (parsedBody) {
       
-      if(response.caseless['dict']['content-length'] < 1000){
-        res.send('ERROR');
-        console.log('Erro ao tentar se conectar!')
+    })
+    .catch(function (err) {
+      aux = err;
+    });
+
+
+  return aux['response']['headers']['set-cookie'];
+}
+
+
+function setCookie(cookie){
+  request.cookie(cookie[0]);
+
+  var headers = {
+    'Content-Type': 'application/json',
+    'Cookie': cookie
+  }
+  
+  var options = {
+    url: 'https://aluno.unicesumar.edu.br/lyceump/aonline/notas_freq.asp',
+    method: 'GET',
+    headers: headers
+  }
+
+  return options;
+}
+
+async function getJsonNotas(options){
+  var json;
+  await request(options)
+    .then(function(res){
+      var notas;
+      var x = 0;
+
+      if(res.length < 1000){
+        json = 'ERROR';
         return;
       }
 
-      $ = cheerio.load(response.body);
+      $ = cheerio.load(res);
+
       $('.tr01 .font01').each(function(i, elem){
         switch(x){
           case 1:
@@ -117,22 +159,14 @@ app.post('/api', function(req, res){
           x = 0;
         }
       });
-  
-      // console.log(notas);
       notas = notas.replace('undefined','');
       notas = notas.substr(0,(notas.length -2));
       notas = "{ \"Notas\": [" + notas + "] } ";
-      var json = JSON.parse(notas);
-      res.send(json);
-      console.log("Enviado com sucesso!");
+      json = JSON.parse(notas);
+    }).catch(function(err){
+      console.log(err);
+      json = 'ERROR';
     });
-    
-  });
 
-});
-
-app.listen(process.env.PORT || 3000, function(){
-  console.log("Servidor rodando!");
-});
-
-
+    return json;
+}
