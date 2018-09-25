@@ -3,7 +3,9 @@ var app = express();
 const request = require("request-promise");
 const cheerio = require('cheerio');
 var bodyParser = require('body-parser');
+var cors = require('cors');
 
+app.use(cors());
 
 app.use(bodyParser.json());
 
@@ -17,7 +19,7 @@ app.post('/api', function(req, res){
 });
 
 app.listen(process.env.PORT || 3000, function(){
-  console.log('Servidor rodando! oh yaeh');
+  console.log('Servidor rodando!');
 });
 
 async function getInfo(ra, senha){
