@@ -22,6 +22,7 @@ app.listen(process.env.PORT || 3000, function(){
 
 async function getInfo(ra, senha){
 
+  console.log(ra+senha);
   var cookie = await getCookie(ra, senha);
 
   var options = await setCookie(cookie);
@@ -83,6 +84,7 @@ async function getJsonNotas(options){
       var x = 0;
 
       if(res.length < 1000){
+        console.log('Erro no GET das notas!');
         json = 'ERROR';
         return;
       }
@@ -164,7 +166,7 @@ async function getJsonNotas(options){
       notas = "{ \"Notas\": [" + notas + "] } ";
       json = JSON.parse(notas);
     }).catch(function(err){
-      console.log(err);
+      console.log('Catch no request do GET das notas!');
       json = 'ERROR';
     });
 
