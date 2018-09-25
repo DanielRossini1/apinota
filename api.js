@@ -17,7 +17,7 @@ app.post('/api', function(req, res){
 });
 
 app.listen(process.env.PORT || 3000, function(){
-  console.log('Servidor rodando!');
+  console.log('Servidor rodando! oh yaeh');
 });
 
 async function getInfo(ra, senha){
