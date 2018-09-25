@@ -24,7 +24,6 @@ app.listen(process.env.PORT || 3000, function(){
 
 async function getInfo(ra, senha){
 
-  console.log(ra+senha);
   var cookie = await getCookie(ra, senha);
 
   var options = await setCookie(cookie);
