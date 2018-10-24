@@ -4,6 +4,14 @@ const request = require("request-promise");
 const cheerio = require('cheerio');
 var bodyParser = require('body-parser');
 var cors = require('cors');
+var S = require('string');
+const Entities = require('html-entities').XmlEntities;
+const entities = new Entities();
+
+var aux = 0;
+var aux2 = 0;
+var bool = true;
+var jsonFaltas = [];
 
 app.use(cors());
 
@@ -28,9 +36,13 @@ async function getInfo(ra, senha){
 
   var options = await setCookie(cookie);
 
-  var jsonNotas = await getJsonNotas(options);
+  var jsonNotas = getJsonNotas(options);
 
-  return jsonNotas;
+  var jsonFaltas = getJsonFaltas(cookie);
+
+  var json = setJson(await jsonNotas, await jsonFaltas);
+
+  return await json;
 
 }
 
@@ -92,7 +104,7 @@ async function getJsonNotas(options){
 
       $ = cheerio.load(res);
 
-      $('.tr01 .font01').each(function(i, elem){
+      $('.tr01 .font01 ').each(function(i, elem){
         switch(x){
           case 1:
             notas += "{ \"Disciplina\": \"" + $(this).text() + "\", ";
@@ -127,7 +139,7 @@ async function getJsonNotas(options){
           x = 0;
         }
       });
-      $('.tr01a .font01').each(function(i, elem){
+      $('.tr01a .font01 ').each(function(i, elem){
         switch(x){
           case 1:
             notas += "{ \"Disciplina\": \"" + $(this).text() + "\", ";
@@ -172,4 +184,73 @@ async function getJsonNotas(options){
     });
 
     return json;
+  }
+  
+async function getJsonFaltas(cookie){
+  var json;
+  
+    
+  var headers = {
+    'Content-Type': 'application/json',
+    'Cookie': cookie
+  }
+  
+  var options = {
+    url: 'https://aluno.unicesumar.edu.br/lyceump/aonline/ti_selecao_disciplina_frequencia.asp',
+    method: 'GET',
+    headers: headers
+  }
+
+  var a = await request(options)
+    .then(function (res){
+      var a = [];
+      $ = cheerio.load(res);
+      $(' dt ').each(function (i,elem){
+        a[i] = $(this).html();
+      });
+      return a;
+    });
+
+
+  a.forEach(function(elem){
+    var linkF = 'https://aluno.unicesumar.edu.br/lyceump/aonline/' + S(elem).between("\"","\"").s;
+    options.url = linkF;
+
+    jsonFaltas[aux] = {};
+
+    jsonFaltas[aux].Materia = entities.decode(S(elem).between(">","<").s);
+
+    aux++;
+
+    setJsonFaltas(options);
+  });
+
+  console.log(jsonFaltas);
+
+}
+
+async function setJsonFaltas(options){
+  await request(options)
+    .then(async function (res){
+
+      $ = cheerio.load(res);
+
+      await $(' #desc-frequencia .disciplina tbody tr:last-child td ').each(function (i,elem){
+
+        if(bool){
+          jsonFaltas[aux2].FaltasPermitidas = $(this).html();
+          bool = false;
+          console.log(aux2);
+        }else{
+          jsonFaltas[aux2].FaltasComputadas = $(this).html();
+          bool = true;
+          aux2++;
+          console.log(aux2);
+        }
+
+
+      });
+      
+    });
+    
 }
