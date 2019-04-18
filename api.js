@@ -15,16 +15,45 @@ var jsonFaltas = [];
 
 app.use(cors());
 
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded());
 
-app.post('/api', function(req, res){
+app.post('/api/getcookie', function(req, res){
 
-  getInfo(req.body.ra, req.body.senha)
+  // res.send(req.body.ra);
+
+
+  
+  getCookie(req.body.ra, req.body.senha)
     .then(function (response){
       res.send(response);
     });
 
 });
+
+async function getCookie(ra, senha){
+
+  var options = {
+    method: 'POST',
+    uri: 'https://aluno.unicesumar.edu.br/lyceump/aonline/middle_logon.asp',
+    form: {
+      txtnumero_matricula: ra, 
+      txtsenha_tac: senha 
+    }
+  };
+
+  var aux;
+
+  await request(options)
+    .then(function (parsedBody) {
+      // aux = parsedBody;
+    }).catch(function (err){
+      // console.log(err['response']['headers']['set-cookie']);
+      aux = err['response']['headers']['set-cookie'];
+    });
+
+  return aux;
+}
+
 
 app.listen(process.env.PORT || 3000, function(){
   console.log('Servidor rodando!');
@@ -46,30 +75,7 @@ async function getInfo(ra, senha){
 
 }
 
-async function getCookie(ra, senha){
 
-  var options = {
-    method: 'POST',
-    uri: 'https://aluno.unicesumar.edu.br/lyceump/aonline/middle_logon.asp',
-    form: {
-      txtnumero_matricula: ra, 
-      txtsenha_tac: senha 
-    }
-  };
-
-  var aux;
-
-  await request(options)
-    .then(function (parsedBody) {
-      
-    })
-    .catch(function (err) {
-      aux = err;
-    });
-
-
-  return aux['response']['headers']['set-cookie'];
-}
 
 
 function setCookie(cookie){
