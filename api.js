@@ -20,8 +20,6 @@ app.use(bodyParser.urlencoded());
 app.post('/api/getcookie', function(req, res){
 
   // res.send(req.body.ra);
-
-
   
   getCookie(req.body.ra, req.body.senha)
     .then(function (response){
@@ -195,7 +193,6 @@ async function getJsonNotas(options){
 async function getJsonFaltas(cookie){
   var json;
   
-    
   var headers = {
     'Content-Type': 'application/json',
     'Cookie': cookie
@@ -253,8 +250,6 @@ async function setJsonFaltas(options){
           aux2++;
           console.log(aux2);
         }
-
-
       });
       
     });
